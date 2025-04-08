@@ -23,42 +23,38 @@ La implementación sigue el patrón **Page Object Model (POM)** para organizar l
    ```bash
    git clone git@github.com:TU_USUARIO/qa-project-Urban-Routes-es.git
 Crear y activar el entorno virtual:
-
 Dirígete al directorio del proyecto y crea el entorno virtual:
 
-Copiar
 cd qa-project-Urban-Routes-es
-python -m venv .venv
+* python -m venv .venv
 Activa el entorno virtual:
 
 En Windows:
-Copiar
-.\.venv\Scripts\activate
+*  .\.venv\Scripts\activate
 En macOS/Linux:
 
-Copiar
-source .venv/bin/activate
+* source .venv/bin/activate
 Instalar las dependencias:
 
 Si el proyecto incluye un archivo requirements.txt, ejecuta:
 
-Copiar
-pip install -r requirements.txt
+
+* pip install -r requirements.txt
 Si no, asegúrate de que selenium esté instalado:
 
-Copiar
-pip install selenium
+
+* pip install selenium
 Configurar la URL de la aplicación (si es necesario):
 
-Revisa el archivo data.py y actualiza la variable urban_routes_url con la URL correcta si hubiese cambios.
+Revise el archivo data.py y actualiza la variable urban_routes_url con la URL correcta si hubiese cambios.
 
 Ejecutar las pruebas:
 
-Puedes ejecutar las pruebas directamente desde PyCharm o desde la terminal. Por ejemplo, para ejecutar el script principal:
+Puede ejecutar las pruebas directamente desde PyCharm o desde la terminal. Por ejemplo, para ejecutar el script principal:
 
-Copiar
+
 python main.py
-O, si utilizas un framework de testing como PyTest:
+O, si utiliza un framework de testing como PyTest:
 
-Copiar
-pytest
+
+* pytest
