@@ -9,6 +9,16 @@ from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import WebDriverException, TimeoutException
 
 
+# -----------------------------------
+# FUNCIONES DE AYUDA
+# -----------------------------------
+def slow_type(element, text, delay=0.25):
+    """Envía cada carácter de 'text' al elemento con una demora para emular tipiado manual."""
+    for char in text:
+        element.send_keys(char)
+        time.sleep(delay)
+
+
 def retrieve_phone_code(driver) -> str:
     """Intercepta el código de confirmación del teléfono desde los logs de rendimiento."""
     code = None
@@ -31,48 +41,52 @@ def retrieve_phone_code(driver) -> str:
     raise Exception("No se encontró el código de confirmación del teléfono.")
 
 
-def slow_type(element, text, delay=0.2):
-    """Envía cada carácter de 'text' al elemento con una demora para simular tipiado manual."""
-    for char in text:
-        element.send_keys(char)
-        time.sleep(delay)
-
-
+# -----------------------------------
+# CLASE: UrbanRoutesPage (POM)
+# -----------------------------------
 class UrbanRoutesPage:
-    # Flujo de rutas:
+    # Elementos para configurar la ruta:
     from_field = (By.ID, "from")
     to_field = (By.ID, "to")
     search_taxi_button = (By.XPATH, "//*[@id='root']/div/div[3]/div[3]/div[1]/div[3]/div[1]/button")
 
-    # Flujo de teléfono:
+    # Elementos para el flujo de teléfono:
     phone_modal_button = (By.XPATH, "//div[contains(@class, 'np-button') and .//div[text()='Número de teléfono']]")
     phone_input_modal = (By.ID, "phone")
     next_button = (By.XPATH, "//div[contains(@class, 'modal')]//button[normalize-space(text())='Siguiente']")
     phone_code_input = (By.ID, "code")
     confirm_sms_button = (By.XPATH, "//div[contains(@class, 'modal')]//button[normalize-space(text())='Confirmar']")
 
-    # Flujo de tarjeta de crédito:
+    # Elementos para el flujo de tarjeta de crédito:
     payment_method_button = (
     By.XPATH, "//div[contains(@class, 'pp-button') and .//div[contains(text(),'Método de pago')]]")
     add_card_option = (By.XPATH, "//div[contains(@class, 'pp-row') and contains(., 'Agregar tarjeta')]")
-    card_modal_container = (By.XPATH, "//div[contains(@class, 'section') and contains(., 'Agregar tarjeta')]")
-    # Usamos los XPaths exactos proporcionados:
-    card_number_input = (By.XPATH, "/html/body/div/div/div[2]/div[2]/div[2]/form/div[1]/div[1]/div[2]/input")
-    card_code_input = (By.XPATH, "/html/body/div/div/div[2]/div[2]/div[2]/form/div[1]/div[2]/div[2]/div[2]/input")
-    add_card_button = (By.XPATH, "/html/body/div/div/div[2]/div[2]/div[2]/form/div[3]/button[1]")
+    card_modal_container = (By.XPATH, "//*[@id='root']/div/div[2]/div[2]")
+    card_number_input = (By.XPATH, "//*[@id='root']/div/div[2]/div[2]//input[@id='number']")
+    card_code_input = (By.XPATH, "//*[@id='root']/div/div[2]/div[2]//input[@id='code']")
+    add_card_button = (By.XPATH, "//*[@id='root']/div/div[2]/div[2]/div[2]/form/div[3]//button")
     close_card_modal_button = (By.XPATH,
                                "//div[contains(@class, 'modal unusual')]//button[contains(@class, 'close-button') and contains(@class, 'section-close')]")
+    close_payment_modal_button = (By.XPATH, "//*[@id='root']/div/div[2]/div[2]/div[1]/button")
+
+    # Elementos para el mensaje al conductor:
+    message_button = (By.XPATH, "//*[@id='root']/div/div[3]/div[3]/div[2]/div[2]/div[3]")
+    message_text_input = (By.ID, "comment")
+
+    # Elementos para los requisitos del pedido:
+    # Se usan los XPATH exactos que nos proporcionaste para activar manta y pañuelos y el contador de helados.
+    blanket_toggle = (
+    By.XPATH, "//*[@id='root']/div/div[3]/div[3]/div[2]/div[2]/div[4]/div[2]/div[1]/div/div[2]/div/span")
+    ice_cream_plus = (By.XPATH,
+                      "//*[@id='root']/div/div[3]/div[3]/div[2]/div[2]/div[4]/div[2]/div[3]/div/div[2]/div[1]/div/div[2]/div/div[3]")
+    reserve_button = (By.XPATH, "//*[@id='root']/div/div[3]/div[4]")
 
     # Otros elementos:
-    message_textarea = (By.TAG_NAME, "textarea")
-    blanket_checkbox = (By.ID, "blanket")
-    tissues_checkbox = (By.ID, "tissues")
-    ice_cream_increment_button = (By.CLASS_NAME, "counter__plus")
     order_button = (By.CLASS_NAME, "button_confirm")
 
     def __init__(self, driver):
         self.driver = driver
-        self.wait = WebDriverWait(driver, 20)
+        self.wait = WebDriverWait(driver, 30)
 
     def set_route(self, from_address, to_address):
         input_from = self.wait.until(EC.visibility_of_element_located(self.from_field))
@@ -83,7 +97,7 @@ class UrbanRoutesPage:
         self.driver.execute_script("arguments[0].scrollIntoView(true);", search_btn)
         time.sleep(1)
         search_btn.click()
-        print("Ruta establecida y 'Pedir un taxi' clickeado para generar el recorrido.")
+        print(f"Ruta configurada: Desde {from_address} hasta {to_address}")
 
     def get_from(self):
         return self.driver.find_element(*self.from_field).get_property("value")
@@ -96,13 +110,13 @@ class UrbanRoutesPage:
             (By.XPATH, "//div[contains(@class, 'tcard-title') and text()='Comfort']")))
         tcard = comfort_title.find_element(By.XPATH, "..")
         comfort_button = tcard.find_element(By.TAG_NAME, "button")
-        self.driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", comfort_button)
+        self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", comfort_button)
         time.sleep(1)
         self.driver.execute_script("arguments[0].click();", comfort_button)
         print("Tarifa Comfort seleccionada.")
 
     def enter_phone_number(self, phone):
-        print("Abrir modal para ingresar número de teléfono...")
+        print("Ingresando número de teléfono...")
         modal_button = self.wait.until(EC.element_to_be_clickable(self.phone_modal_button))
         modal_button.click()
         self.wait.until(EC.visibility_of_element_located((By.CSS_SELECTOR, "div.number-picker.open")))
@@ -112,193 +126,260 @@ class UrbanRoutesPage:
         print("Número de teléfono ingresado:", phone)
         next_btn = self.wait.until(EC.element_to_be_clickable(self.next_button))
         next_btn.click()
-        print("'Siguiente' en el modal de teléfono clickeado.")
+        print("Clic en 'Siguiente' en el modal de teléfono.")
 
     def enter_phone_code(self, code):
-        print("Ingresar código SMS...")
+        print("Ingresando código SMS:", code)
         input_code = self.wait.until(EC.visibility_of_element_located(self.phone_code_input))
         input_code.clear()
         input_code.send_keys(code)
-        print("Código SMS ingresado:", code)
         confirm_btn = self.wait.until(EC.element_to_be_clickable(self.confirm_sms_button))
         confirm_btn.click()
-        print("'Confirmar' código SMS clickeado.")
+        print("Clic en 'Confirmar' el código SMS.")
 
     def enter_card_data(self, card_number, card_code):
-        print("Iniciar flujo para agregar tarjeta de crédito...")
-        # Paso 1: Clic en 'Método de pago'
+        print("=== Iniciando la parte de 'Agregar tarjeta' ===")
+        # Paso 1: Clic en "Método de pago"
         payment_btn = self.wait.until(EC.element_to_be_clickable(self.payment_method_button))
         self.driver.execute_script("arguments[0].scrollIntoView(true);", payment_btn)
         time.sleep(1)
         payment_btn.click()
-        print("'Método de pago' clickeado.")
+        print("Clic en 'Método de pago' ejecutado.")
 
-        # Paso 2: Clic en 'Agregar tarjeta'
+        # Paso 2: Clic en "Agregar tarjeta"
         add_card_opt = self.wait.until(EC.element_to_be_clickable(self.add_card_option))
         self.driver.execute_script("arguments[0].scrollIntoView(true);", add_card_opt)
         time.sleep(1)
         add_card_opt.click()
-        print("'Agregar tarjeta' clickeado en el modal de pago.")
+        print("Clic en 'Agregar tarjeta' ejecutado en el modal de pago.")
 
-        # Paso 3: Esperar que se muestre el modal de tarjeta
+        # Paso 3: Esperar que aparezca el modal de tarjeta
         self.wait.until(EC.visibility_of_element_located(self.card_modal_container))
         print("Modal 'Agregar tarjeta' visible.")
 
-        # Paso 4: Ingresar el número de tarjeta con tipiado lento
+        # Paso 4: Ingresar el número de tarjeta:
         try:
             card_num_input = self.wait.until(EC.visibility_of_element_located(self.card_number_input))
             card_num_input.clear()
-            # Forzar doble clic para activar el input
-            ActionChains(self.driver).move_to_element(card_num_input).double_click().perform()
-            self.driver.execute_script("arguments[0].click();", card_num_input)
-            slow_type(card_num_input, card_number, delay=0.25)
+            ActionChains(self.driver).move_to_element(card_num_input).click().perform()
+            time.sleep(0.5)
+            card_num_input.send_keys(card_number)
             print("Número de tarjeta ingresado:", card_number)
-            print("Valor final en número de tarjeta:", card_num_input.get_attribute("value"))
-        except TimeoutException:
-            print("No se pudo interactuar con el input del número de tarjeta.")
+            print("Valor final en el input de tarjeta:", card_num_input.get_attribute("value"))
+        except TimeoutException as e:
+            raise Exception("Timeout al interactuar con el input del número de tarjeta: " + str(e))
 
-        # Paso 5: Ingresar el CVV (código) con tipiado lento
+        # Paso 5: Ingresar el CVV (código):
         try:
             card_code_input = self.wait.until(EC.visibility_of_element_located(self.card_code_input))
             card_code_input.clear()
-            ActionChains(self.driver).move_to_element(card_code_input).double_click().perform()
-            self.driver.execute_script("arguments[0].click();", card_code_input)
-            slow_type(card_code_input, card_code, delay=0.25)
+            ActionChains(self.driver).move_to_element(card_code_input).click().perform()
+            self.driver.execute_script("arguments[0].focus();", card_code_input)
+            time.sleep(0.5)
+            card_code_input.send_keys(card_code)
             print("Código (CVV) ingresado:", card_code)
-            print("Valor final en CVV:", card_code_input.get_attribute("value"))
-        except TimeoutException:
-            print("No se pudo interactuar con el input del CVV.")
+            print("Valor final en el input de CVV:", card_code_input.get_attribute("value"))
+        except TimeoutException as e:
+            raise Exception("Timeout al interactuar con el input del CVV: " + str(e))
 
-        # Paso 6: Forzar pérdida de foco en el campo del CVV
+        # Paso 6: Forzar pérdida de foco en el campo CVV:
         try:
-            # Enviar TAB para que el input pierda el foco
+            print("Forzando pérdida de foco en el campo CVV (TAB, blur, ESC, clic en contenedor).")
             card_code_input.send_keys(Keys.TAB)
-            # Ejecutar blur explícitamente
             self.driver.execute_script("arguments[0].blur();", card_code_input)
-            # Esperar 3 segundos para que React actualice su estado
+            card_code_input.send_keys(Keys.ESCAPE)
             time.sleep(3)
-            # Clic en el contenedor del modal para asegurar que se pierda el foco en caso de ser necesario
             container = self.wait.until(EC.visibility_of_element_located(self.card_modal_container))
             ActionChains(self.driver).move_to_element_with_offset(container, 10, 10).click().perform()
-            print("Pérdida de foco forzada en el CVV con clic en el contenedor del modal.")
-        except TimeoutException:
-            print("No se pudo forzar el blur en el modal.")
+            print("Pérdida de foco forzada en el campo CVV mediante clic en el contenedor.")
+        except TimeoutException as e:
+            raise Exception("Timeout al forzar el blur en el campo CVV: " + str(e))
 
-        # Paso 7: Esperar que el botón "Agregar" se habilite y hacer clic
+        # Paso 7: Esperar que el botón "Agregar" se habilite y hacer clic:
         def add_button_enabled(driver):
             btn = driver.find_element(*self.add_card_button)
             return btn.get_attribute("disabled") is None
 
-        self.wait.until(add_button_enabled)
         try:
+            print("Esperando que el botón 'Agregar' se habilite...")
+            self.wait.until(add_button_enabled)
             add_card_btn = self.wait.until(EC.element_to_be_clickable(self.add_card_button))
             self.driver.execute_script("arguments[0].scrollIntoView(true);", add_card_btn)
             time.sleep(1)
-            self.driver.execute_script("arguments[0].click();", add_card_btn)
-            print("Botón 'Agregar' de tarjeta clickeado.")
-        except TimeoutException:
-            print("El botón 'Agregar' no se habilitó a tiempo; se salta el paso.")
+            add_card_btn.click()
+            print("Clic en el botón 'Agregar' ejecutado.")
+        except TimeoutException as e:
+            raise Exception("Timeout al esperar o hacer clic en el botón 'Agregar': " + str(e))
 
-    def close_card_modal(self):
-        print("Cerrar modal de tarjeta...")
+    def close_payment_modal(self):
+        """Cierra el cuadro de 'Método de pago' usando el botón de 'X'."""
+        print("Cerrando modal de 'Método de pago'...")
         try:
-            close_btn = self.wait.until(EC.element_to_be_clickable(self.close_card_modal_button))
-            self.driver.execute_script("arguments[0].scrollIntoView(true);", close_btn)
-            time.sleep(1)
-            close_btn.click()
-            print("Modal de tarjeta cerrado.")
+            payment_close = self.wait.until(EC.element_to_be_clickable(self.close_payment_modal_button))
+            payment_close.click()
+            print("Modal de 'Método de pago' cerrado.")
         except TimeoutException:
-            print("No se encontró el botón para cerrar el modal de tarjeta. Se continúa.")
+            print("No se encontró el botón para cerrar el modal de 'Método de pago'. Continuando...")
 
     def enter_message_for_driver(self, message):
-        textarea = self.wait.until(EC.visibility_of_element_located(self.message_textarea))
-        textarea.clear()
-        textarea.send_keys(message)
-        print("Mensaje para el conductor ingresado:", message)
+        print("Ingresando mensaje para el conductor...")
+        msg_btn = self.wait.until(EC.element_to_be_clickable(self.message_button))
+        msg_btn.click()
+        print("Clic en el botón de mensaje para el conductor ejecutado.")
+        message_input = self.wait.until(EC.visibility_of_element_located(self.message_text_input))
+        message_input.clear()
+        message_input.send_keys(message)
+        print("Mensaje ingresado:", message)
 
-    def select_blanket_and_tissues(self):
-        blanket = self.wait.until(EC.element_to_be_clickable(self.blanket_checkbox))
-        blanket.click()
-        tissues = self.wait.until(EC.element_to_be_clickable(self.tissues_checkbox))
-        tissues.click()
-        print("Manta y pañuelos seleccionados.")
-
-    def add_ice_cream(self, quantity=2):
-        for _ in range(quantity):
-            ice_cream_btn = self.wait.until(EC.element_to_be_clickable(self.ice_cream_increment_button))
+    def select_requirements_and_reserve(self, ice_cream_qty=2):
+        print("Seleccionando Requisitos del pedido...")
+        # Se asume que el contenedor de requisitos ya está desplegado automáticamente.
+        # Paso 1: Activar la opción de manta y pañuelos:
+        blanket_toggle = self.wait.until(EC.element_to_be_clickable(self.blanket_toggle))
+        blanket_toggle.click()
+        print("Opción de manta y pañuelos activada.")
+        time.sleep(1)
+        # Paso 2: Agregar helado (clic en el botón de "+") la cantidad indicada:
+        for i in range(ice_cream_qty):
+            ice_cream_btn = self.wait.until(EC.element_to_be_clickable(self.ice_cream_plus))
             ice_cream_btn.click()
-        print(f"{quantity} helados agregados.")
+            print(f"Helado agregado: {i + 1}")
+            time.sleep(0.5)
+        # Paso 3: Clic en el botón "Reservar":
+        reserve_btn = self.wait.until(EC.element_to_be_clickable(self.reserve_button))
+        self.driver.execute_script("arguments[0].scrollIntoView(true);", reserve_btn)
+        time.sleep(1)
+        reserve_btn.click()
+        print("Clic en el botón 'Reservar' ejecutado.")
 
     def confirm_order(self):
+        print("Confirmando pedido...")
         confirm_btn = self.wait.until(EC.element_to_be_clickable(self.order_button))
         confirm_btn.click()
-        print("'Confirmar pedido' clickeado.")
+        print("Pedido confirmado.")
 
     def click_order_taxi(self):
-        print("Clic en 'Pedir un taxi'...")
+        print("Pidiendo taxi...")
         order_taxi = self.wait.until(EC.element_to_be_clickable(self.search_taxi_button))
         self.driver.execute_script("arguments[0].scrollIntoView({block:'center'});", order_taxi)
         time.sleep(1)
-        self.driver.execute_script("arguments[0].click();", order_taxi)
+        order_taxi.click()
         time.sleep(1)
-        print("'Pedir un taxi' clickeado.")
+        print("Clic en 'Pedir un taxi' ejecutado.")
 
 
+# -----------------------------------
+# CLASE: TestUrbanRoutes (Pruebas individuales)
+# -----------------------------------
 class TestUrbanRoutes:
-    driver = None
+    def __init__(self, driver):
+        self.driver = driver
+        self.page = UrbanRoutesPage(driver)
 
-    @classmethod
-    def setup_class(cls):
-        print("Iniciando driver de Chrome...")
-        from selenium.webdriver.chrome.options import Options
-        options = Options()
-        options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-        cls.driver = webdriver.Chrome(options=options)
-        cls.driver.maximize_window()
-        print("Driver iniciado y ventana maximizada.")
+    def test_configurar_direccion(self):
+        print("PRUEBA: Configurar dirección")
+        self.page.set_route(data.address_from, data.address_to)
+        assert self.page.get_from() == data.address_from, "La dirección 'from' no coincide"
+        assert self.page.get_to() == data.address_to, "La dirección 'to' no coincide"
 
-    def test_order_taxi(self):
-        print("Abriendo la página de Urban Routes...")
-        self.driver.get(data.urban_routes_url)
-        print("URL abierta:", data.urban_routes_url)
-        time.sleep(5)
+    def test_seleccionar_tarifa(self):
+        print("PRUEBA: Seleccionar tarifa Comfort")
+        self.page.select_comfort_tariff()
 
-        routes_page = UrbanRoutesPage(self.driver)
-        routes_page.set_route(data.address_from, data.address_to)
-        assert routes_page.get_from() == data.address_from, "La dirección 'from' no coincide"
-        assert routes_page.get_to() == data.address_to, "La dirección 'to' no coincide"
+    def test_ingresar_telefono(self):
+        print("PRUEBA: Ingresar número de teléfono")
+        self.page.enter_phone_number(data.phone_number)
 
-        routes_page.select_comfort_tariff()
-        routes_page.enter_phone_number(data.phone_number)
+    def test_ingresar_codigo_sms(self):
+        print("PRUEBA: Ingresar código SMS")
         code = retrieve_phone_code(self.driver)
-        routes_page.enter_phone_code(code)
-        routes_page.enter_card_data(data.card_number, data.card_code)
-        routes_page.close_card_modal()
-        routes_page.enter_message_for_driver(data.message_for_driver)
-        routes_page.select_blanket_and_tissues()
-        routes_page.add_ice_cream(2)
-        routes_page.confirm_order()
-        routes_page.click_order_taxi()
+        self.page.enter_phone_code(code)
 
-        print("Flujo de pedido de taxi completado exitosamente.")
-        time.sleep(5)
+    def test_agregar_tarjeta(self):
+        print("PRUEBA: Agregar tarjeta de crédito")
+        self.page.enter_card_data(data.card_number, data.card_code)
+        self.page.close_payment_modal()
 
-    @classmethod
-    def teardown_class(cls):
-        print("Cerrando driver...")
-        cls.driver.quit()
-        print("Driver cerrado.")
+    def test_ingresar_mensaje(self):
+        print("PRUEBA: Ingresar mensaje para el conductor")
+        self.page.enter_message_for_driver(data.message_for_driver)
+
+    def test_seleccionar_requisitos(self):
+        print("PRUEBA: Seleccionar Requisitos del pedido (manta, pañuelos y 2 helados)")
+        self.page.select_requirements_and_reserve(2)
+
+    def test_confirmar_pedido(self):
+        print("PRUEBA: Confirmar pedido")
+        self.page.confirm_order()
+
+    def test_pedir_taxi(self):
+        print("PRUEBA: Pedir taxi")
+        self.page.click_order_taxi()
 
 
-if __name__ == '__main__':
-    print("=== INICIO DE LA PRUEBA ===")
-    TestUrbanRoutes.setup_class()
-    test_instance = TestUrbanRoutes()
+# -----------------------------------
+# FUNCIONES DE EJECUCIÓN
+# -----------------------------------
+def main():
+    from selenium.webdriver.chrome.options import Options
+    options = Options()
+    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+    driver = webdriver.Chrome(options=options)
+    driver.maximize_window()
+
     try:
-        test_instance.test_order_taxi()
+        driver.get(data.urban_routes_url)
+        time.sleep(5)
+        tests = TestUrbanRoutes(driver)
+        tests.test_configurar_direccion()
+        time.sleep(1)
+        tests.test_seleccionar_tarifa()
+        time.sleep(1)
+        tests.test_ingresar_telefono()
+        time.sleep(1)
+        tests.test_ingresar_codigo_sms()
+        time.sleep(1)
+        tests.test_agregar_tarjeta()
+        time.sleep(1)
+        tests.test_ingresar_mensaje()
+        time.sleep(1)
+        tests.test_seleccionar_requisitos()
+        time.sleep(1)
+        tests.test_confirmar_pedido()
+        time.sleep(1)
+        tests.test_pedir_taxi()
+        time.sleep(5)
+        print("Flujo completo de pedido de taxi ejecutado exitosamente.")
     finally:
-        TestUrbanRoutes.teardown_class()
-    print("=== FIN DE LA PRUEBA ===")
+        driver.quit()
+
+
+# -----------------------------------
+# EJECUCIÓN
+# -----------------------------------
+if __name__ == '__main__':
+    # Ejecutar el flujo completo de forma única:
+    main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -1,60 +1,78 @@
-# Urban Routes QA Project
+# qa-project-Urban-Routes-es
 
 ## Descripción del Proyecto
 
-Este proyecto de automatización de pruebas se diseñó para validar la funcionalidad de la aplicación web Urban Routes, una plataforma para solicitar taxis. El objetivo de los tests es asegurar que el flujo completo de la aplicación funcione correctamente: desde configurar las direcciones, seleccionar la tarifa (por ejemplo, "Comfort"), iniciar sesión mediante la verificación del número de teléfono, agregar el método de pago (incluyendo el proceso de agregar tarjeta de crédito) hasta confirmar el pedido de taxi.  
-  
-La implementación sigue el patrón **Page Object Model (POM)** para organizar los tests y facilitar su mantenimiento, separando la lógica de interacción con los elementos de la interfaz de los propios escenarios de prueba.
+Este proyecto forma parte del Bootcamp en QA Engineer y tiene como objetivo automatizar pruebas funcionales de la aplicación web Urban Routes.  
+La automatización se implementa utilizando Selenium WebDriver en Python, aplicando el patrón Page Object Model (POM) para separar la lógica de interacción con la página de la lógica de pruebas.  
+El flujo automatizado abarca desde la configuración de la ruta y selección de tarifa hasta la confirmación final del pedido del taxi. Entre las acciones automatizadas se encuentran:
+
+- **Configuración de la ruta y selección de tarifa:**  
+  Ingreso de los datos de origen y destino, y selección de la tarifa "Comfort" para el servicio.
+
+- **Autenticación mediante teléfono:**  
+  Ingreso del número de teléfono y del código SMS, utilizando métodos que capturan el código mediante los logs de rendimiento.
+
+- **Agregar una tarjeta de crédito:**  
+  Se abre el modal "Método de pago" y, desde allí, el modal "Agregar tarjeta" para ingresar el número de la tarjeta y el CVV. Se fuerza la pérdida de foco para activar el botón "Agregar", luego se cierra el modal de "Método de pago".
+
+- **Ingreso de un mensaje al conductor:**  
+  Se accede a la sección de mensaje para el conductor y se ingresa el mensaje correspondiente.
+
+- **Selección de requisitos y confirmación del pedido:**  
+  Se activa la opción de “manta y pañuelos”, se agregan 2 helados mediante el contador y, finalmente, se hace clic en el botón "Reservar". Una vez completadas estas acciones, se confirma el pedido y se solicita el taxi.
 
 ## Tecnologías y Técnicas Utilizadas
 
-- **Selenium WebDriver:** Automatiza la interacción con el navegador para simular la actividad de un usuario en la aplicación.
-- **Python:** Lenguaje de programación utilizado para desarrollar los tests.
-- **Page Object Model (POM):** Patrón de diseño para encapsular los elementos y métodos de interacción de cada página, facilitando la reutilización y mantenimiento del código.
-- **Google Chrome y Chrome WebDriver:** Navegador y driver utilizados para ejecutar las pruebas.
-- **Git & GitHub:** Para la gestión de versiones y la colaboración, facilitando la revisión y actualización del código.
+- **Python:** Lenguaje de programación principal.
+- **Selenium WebDriver:** Librería para automatizar pruebas y la interacción con el navegador.
+- **ChromeDriver:** Controlador para automatizar Google Chrome.
+- **Page Object Model (POM):** Patrón de diseño que permite organizar el código de pruebas separando la lógica de interacción con la interfaz de la lógica de verificación.
+- **Pausas temporales (time.sleep):** Utilizadas para esperar a que se completen acciones asíncronas en la interfaz.
 
 ## Instrucciones para Ejecutar las Pruebas
 
-1. **Clonar el repositorio:**
+1. **Clonar el repositorio**
 
-   Abre tu terminal y clona el repositorio (asegúrate de usar tu propio nombre de usuario en lugar de `username`):
+   Asegúrate de tener una copia local del repositorio:
+   
+       git clone git@github.com:tu-usuario/qa-project-Urban-Routes-es.git
 
-   ```bash
-   git clone git@github.com:TU_USUARIO/qa-project-Urban-Routes-es.git
-Crear y activar el entorno virtual:
-Dirígete al directorio del proyecto y crea el entorno virtual:
+2. **Abrir el proyecto en PyCharm**
 
-cd qa-project-Urban-Routes-es
-* python -m venv .venv
-Activa el entorno virtual:
+En PyCharm, selecciona File → Open y carga la carpeta del proyecto.
 
-En Windows:
-*  .\.venv\Scripts\activate
-En macOS/Linux:
+Configurar el entorno virtual
 
-* source .venv/bin/activate
-Instalar las dependencias:
+      python -m venv .venv
 
-Si el proyecto incluye un archivo requirements.txt, ejecuta:
+Activa el entorno:
 
+En PowerShell (Windows):
 
-* pip install -r requirements.txt
-Si no, asegúrate de que selenium esté instalado:
+     .\.venv\Scripts\Activate.ps1
 
+3. **Instalar dependencias**
 
-* pip install selenium
-Configurar la URL de la aplicación (si es necesario):
+Instala la librería Selenium:
 
-Revise el archivo data.py y actualiza la variable urban_routes_url con la URL correcta si hubiese cambios.
+      pip install selenium
 
-Ejecutar las pruebas:
+4. **Ejecutar el Flujo Completo de Pruebas**
 
-Puede ejecutar las pruebas directamente desde PyCharm o desde la terminal. Por ejemplo, para ejecutar el script principal:
+El flujo completo de pruebas se encuentra en el archivo main.py. Para ejecutarlo, desde la terminal (dentro del entorno virtual) escribe:
 
+      python main.py
 
-python main.py
-O, si utiliza un framework de testing como PyTest:
+* Esto ejecutará todo el flujo automatizado que abarca:
 
+* Configuración de la ruta y selección de tarifa.
 
-* pytest
+* Autenticación con teléfono (ingreso de número y código SMS).
+
+* Agregar tarjeta de crédito y cierre del modal de "Método de pago".
+
+* Ingreso del mensaje para el conductor.
+
+* Selección de requisitos (activación de manta y pañuelos, agregar 2 helados y clic en "Reservar").
+
+* Confirmación final del pedido y solicitud del taxi.
