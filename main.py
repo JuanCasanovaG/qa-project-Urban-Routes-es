@@ -8,6 +8,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import WebDriverException, TimeoutException
 
+#El codigo si me ejecuta bien la prueba hasta el final, corriendo o ejecutando desde el marcador Run 'main' y cumpliendo cada uno de los pasos.
+#Ya actualice la URL
 
 # -----------------------------------
 # FUNCIONES DE AYUDA
