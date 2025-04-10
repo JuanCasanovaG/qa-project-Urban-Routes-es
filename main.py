@@ -8,11 +8,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.common import WebDriverException, TimeoutException
 
-<<<<<<< HEAD
-=======
-#El codigo si me ejecuta bien la prueba hasta el final, corriendo o ejecutando desde el marcador Run 'main' y cumpliendo cada uno de los pasos.
-#Ya actualice la URL
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
 
 # -----------------------------------
 # FUNCIONES DE AYUDA
@@ -29,7 +24,6 @@ def retrieve_phone_code(driver) -> str:
     code = None
     for i in range(10):
         try:
-<<<<<<< HEAD
             logs = [
                 log["message"]
                 for log in driver.get_log("performance")
@@ -41,14 +35,6 @@ def retrieve_phone_code(driver) -> str:
                     "Network.getResponseBody",
                     {"requestId": message_data["params"]["requestId"]}
                 )
-=======
-            logs = [log["message"] for log in driver.get_log("performance")
-                    if log.get("message") and "api/v1/number?number" in log.get("message")]
-            for log in reversed(logs):
-                message_data = json.loads(log)["message"]
-                body = driver.execute_cdp_cmd("Network.getResponseBody",
-                                              {"requestId": message_data["params"]["requestId"]})
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
                 code = "".join([x for x in body["body"] if x.isdigit()])
                 if code:
                     break
@@ -93,22 +79,14 @@ class UrbanRoutesPage:
     message_text_input = (By.ID, "comment")
 
     # Elementos para los requisitos del pedido:
-<<<<<<< HEAD
     # (Se omite clic en el botón "Requisitos del pedido" porque se despliega automáticamente)
-=======
-    # Se usan los XPATH exactos que nos proporcionaste para activar manta y pañuelos y el contador de helados.
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
     blanket_toggle = (
     By.XPATH, "//*[@id='root']/div/div[3]/div[3]/div[2]/div[2]/div[4]/div[2]/div[1]/div/div[2]/div/span")
     ice_cream_plus = (By.XPATH,
                       "//*[@id='root']/div/div[3]/div[3]/div[2]/div[2]/div[4]/div[2]/div[3]/div/div[2]/div[1]/div/div[2]/div/div[3]")
     reserve_button = (By.XPATH, "//*[@id='root']/div/div[3]/div[4]")
 
-<<<<<<< HEAD
     # Elementos para confirmar el pedido:
-=======
-    # Otros elementos:
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
     order_button = (By.CLASS_NAME, "button_confirm")
 
     def __init__(self, driver):
@@ -260,13 +238,8 @@ class UrbanRoutesPage:
 
     def select_requirements_and_reserve(self, ice_cream_qty=2):
         print("Seleccionando Requisitos del pedido...")
-<<<<<<< HEAD
         # Se asume que el contenedor de requisitos se despliega automáticamente.
         # Paso 1: Activar la opción de "manta y pañuelos":
-=======
-        # Se asume que el contenedor de requisitos ya está desplegado automáticamente.
-        # Paso 1: Activar la opción de manta y pañuelos:
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
         blanket_toggle = self.wait.until(EC.element_to_be_clickable(self.blanket_toggle))
         blanket_toggle.click()
         print("Opción de manta y pañuelos activada.")
@@ -301,7 +274,6 @@ class UrbanRoutesPage:
 
 
 # -----------------------------------
-<<<<<<< HEAD
 # CLASE: TestUrbanRoutes (Tests a nivel de clase)
 # -----------------------------------
 class TestUrbanRoutes:
@@ -400,140 +372,3 @@ if __name__ == '__main__':
     main()
 
 
-=======
-# CLASE: TestUrbanRoutes (Pruebas individuales)
-# -----------------------------------
-class TestUrbanRoutes:
-    def __init__(self, driver):
-        self.driver = driver
-        self.page = UrbanRoutesPage(driver)
-
-    def test_configurar_direccion(self):
-        print("PRUEBA: Configurar dirección")
-        self.page.set_route(data.address_from, data.address_to)
-        assert self.page.get_from() == data.address_from, "La dirección 'from' no coincide"
-        assert self.page.get_to() == data.address_to, "La dirección 'to' no coincide"
-
-    def test_seleccionar_tarifa(self):
-        print("PRUEBA: Seleccionar tarifa Comfort")
-        self.page.select_comfort_tariff()
-
-    def test_ingresar_telefono(self):
-        print("PRUEBA: Ingresar número de teléfono")
-        self.page.enter_phone_number(data.phone_number)
-
-    def test_ingresar_codigo_sms(self):
-        print("PRUEBA: Ingresar código SMS")
-        code = retrieve_phone_code(self.driver)
-        self.page.enter_phone_code(code)
-
-    def test_agregar_tarjeta(self):
-        print("PRUEBA: Agregar tarjeta de crédito")
-        self.page.enter_card_data(data.card_number, data.card_code)
-        self.page.close_payment_modal()
-
-    def test_ingresar_mensaje(self):
-        print("PRUEBA: Ingresar mensaje para el conductor")
-        self.page.enter_message_for_driver(data.message_for_driver)
-
-    def test_seleccionar_requisitos(self):
-        print("PRUEBA: Seleccionar Requisitos del pedido (manta, pañuelos y 2 helados)")
-        self.page.select_requirements_and_reserve(2)
-
-    def test_confirmar_pedido(self):
-        print("PRUEBA: Confirmar pedido")
-        self.page.confirm_order()
-
-    def test_pedir_taxi(self):
-        print("PRUEBA: Pedir taxi")
-        self.page.click_order_taxi()
-
-
-# -----------------------------------
-# FUNCIONES DE EJECUCIÓN
-# -----------------------------------
-def main():
-    from selenium.webdriver.chrome.options import Options
-    options = Options()
-    options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-    driver = webdriver.Chrome(options=options)
-    driver.maximize_window()
-
-    try:
-        driver.get(data.urban_routes_url)
-        time.sleep(5)
-        tests = TestUrbanRoutes(driver)
-        tests.test_configurar_direccion()
-        time.sleep(1)
-        tests.test_seleccionar_tarifa()
-        time.sleep(1)
-        tests.test_ingresar_telefono()
-        time.sleep(1)
-        tests.test_ingresar_codigo_sms()
-        time.sleep(1)
-        tests.test_agregar_tarjeta()
-        time.sleep(1)
-        tests.test_ingresar_mensaje()
-        time.sleep(1)
-        tests.test_seleccionar_requisitos()
-        time.sleep(1)
-        tests.test_confirmar_pedido()
-        time.sleep(1)
-        tests.test_pedir_taxi()
-        time.sleep(5)
-        print("Flujo completo de pedido de taxi ejecutado exitosamente.")
-    finally:
-        driver.quit()
-
-
-# -----------------------------------
-# EJECUCIÓN
-# -----------------------------------
-if __name__ == '__main__':
-    # Ejecutar el flujo completo de forma única:
-    main()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
