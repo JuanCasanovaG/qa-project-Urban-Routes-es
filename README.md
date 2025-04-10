@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 qa-project-Urban-Routes-es
 Descripción del Proyecto
 Este proyecto forma parte del Bootcamp en QA Engineer y tiene como objetivo automatizar pruebas funcionales de la aplicación web Urban Routes.
