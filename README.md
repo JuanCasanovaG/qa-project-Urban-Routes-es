@@ -112,7 +112,6 @@ El flujo completo de pruebas se encuentra en el archivo main.py. Para ejecutarlo
       python main.py o  Ejececutar desde el Run 'main' (Boton ">")
 
 * Esto ejecutará todo el flujo automatizado que abarca:
->>>>>>> 4a3b8a76f2e37eb94ef237ebdebef31b64c2e6f7
 
 * Configuración de la ruta y selección de tarifa.
 
