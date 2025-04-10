@@ -3,91 +3,76 @@
 ## Descripción del Proyecto
 
 Este proyecto forma parte del Bootcamp en QA Engineer y tiene como objetivo automatizar pruebas funcionales de la aplicación web Urban Routes.  
-La automatización se implementa en Python utilizando Selenium WebDriver y se organiza aplicando el patrón Page Object Model (POM).  
-El flujo automatizado abarca desde la configuración de la ruta y la selección de la tarifa hasta la confirmación final del pedido del taxi, incluyendo:
+La automatización se implementa utilizando Selenium WebDriver en Python, aplicando el patrón Page Object Model (POM) para separar la lógica de interacción con la página de la lógica de pruebas.  
+El flujo automatizado abarca desde la configuración de la ruta y selección de tarifa hasta la confirmación final del pedido del taxi. Entre las acciones automatizadas se encuentran:
 
 - **Configuración de la ruta y selección de tarifa:**  
-  Ingreso de datos de origen y destino, y selección de la tarifa "Comfort".
+  Ingreso de los datos de origen y destino, y selección de la tarifa "Comfort" para el servicio.
 
 - **Autenticación mediante teléfono:**  
-  Ingreso del número de teléfono y el código SMS (capturado a través de los logs de rendimiento).
+  Ingreso del número de teléfono y del código SMS, utilizando métodos que capturan el código mediante los logs de rendimiento.
 
-- **Agregación de tarjeta de crédito:**  
-  Apertura del modal de “Método de pago”, ingreso del número de tarjeta y CVV (forzando la pérdida de foco para activar el botón "Agregar"), y cierre del modal.
+- **Agregar una tarjeta de crédito:**  
+  Se abre el modal "Método de pago" y, desde allí, el modal "Agregar tarjeta" para ingresar el número de la tarjeta y el CVV. Se fuerza la pérdida de foco para activar el botón "Agregar", luego se cierra el modal de "Método de pago".
 
-- **Ingreso de un mensaje para el conductor:**  
-  Se activa la sección para escribir el mensaje y se ingresa el contenido.
+- **Ingreso de un mensaje al conductor:**  
+  Se accede a la sección de mensaje para el conductor y se ingresa el mensaje correspondiente.
 
-- **Selección de requisitos y pedido:**  
-  Se activa automáticamente el contenedor de requisitos, donde se habilita la opción de “manta y pañuelos” y se agregan 2 helados mediante el contador, seguido por un clic en "Reservar".  
-  Finalmente, se confirma el pedido y se solicita el taxi.
-
-## Estructura del Proyecto
-
-El proyecto se divide en los siguientes archivos:
-
-- **data.py**  
-  Contiene las variables de configuración y datos de prueba (URL del servidor, direcciones, número de teléfono, datos de la tarjeta, mensaje, etc.).
-
-- **helpers.py**  
-  Incluye funciones de apoyo, como `slow_type` y `retrieve_phone_code`, que facilitan la interacción con la aplicación.
-
-- **pages.py**  
-  Define la clase `UrbanRoutesPage`, que contiene los selectores y métodos para interactuar con cada parte de la interfaz de Urban Routes siguiendo el patrón POM.  
-  El método `__init__` se utiliza aquí para inicializar el driver en la instancia de página (esto es estándar en POM).
-
-- **test_main.py**  
-  Contiene la clase `TestUrbanRoutes` con todos los métodos de test individuales.  
-  La clase utiliza los métodos `setup_class` y `teardown_class` (sin un constructor `__init__`) para que pytest gestione la creación de la única instancia de Chrome en la que se ejecutan todas las pruebas.
+- **Selección de requisitos y confirmación del pedido:**  
+  Se activa la opción de “manta y pañuelos”, se agregan 2 helados mediante el contador y, finalmente, se hace clic en el botón "Reservar". Una vez completadas estas acciones, se confirma el pedido y se solicita el taxi.
 
 ## Tecnologías y Técnicas Utilizadas
 
-- **Python:** Lenguaje de programación principal.  
-- **Selenium WebDriver:** Librería para automatizar pruebas y la interacción con el navegador.  
-- **ChromeDriver:** Controlador para automatizar Google Chrome.  
-- **Page Object Model (POM):** Patrón de diseño que facilita la mantenibilidad del código al separar la lógica de interacción con la interfaz de la lógica de validación.  
-- **PyTest:** Framework para la ejecución y organización de pruebas en Python.
+- **Python:** Lenguaje de programación principal.
+- **Selenium WebDriver:** Librería para automatizar pruebas y la interacción con el navegador.
+- **ChromeDriver:** Controlador para automatizar Google Chrome.
+- **Page Object Model (POM):** Patrón de diseño que permite organizar el código de pruebas separando la lógica de interacción con la interfaz de la lógica de verificación.
+- **Pausas temporales (time.sleep):** Utilizadas para esperar a que se completen acciones asíncronas en la interfaz.
 
 ## Instrucciones para Ejecutar las Pruebas
 
-### Preparación del Proyecto
+1. **Clonar el repositorio**
 
-1. **Clonar el repositorio**  
    Asegúrate de tener una copia local del repositorio:
    
        git clone git@github.com:tu-usuario/qa-project-Urban-Routes-es.git
 
-## Estructura de archivos
-qa-project-Urban-Routes-es/
-├── data.py
-├── helpers.py
-├── pages.py
-└── test_main.py
+2. **Abrir el proyecto en PyCharm**
 
-## Configurar el entorno virtual
-         python -m venv .venv
+En PyCharm, selecciona File → Open y carga la carpeta del proyecto.
 
-## En Windows (PowerShell):
-         .\.venv\Scripts\Activate.ps1
+Configurar el entorno virtual
 
-## Instalar dependencias
-          pip install selenium
+      python -m venv .venv
 
-## Configurar los datos
-# data.py
-urban_routes_url = "https://cnt-f77e12c2-30d6-4786-83ff-0e3e067a0751.containerhub.tripleten-services.com?lng=es"
-address_from = "East 2nd Street, 601"
-address_to = "1300 1st St"
-phone_number = "+1 123 123 12 12"
-card_number = "435465456768687687"
-card_code = "44"
-message_for_driver = "Muéstrame el camino al museo"
+Activa el entorno:
 
-## Ejecución de las Pruebas
-Desde la Terminal
-Navega hasta la carpeta raíz del proyecto.
+En PowerShell (Windows):
 
-Ejecuta los tests con pytest:
+     .\.venv\Scripts\Activate.ps1
 
-          pytest
+3. **Instalar dependencias**
 
+Instala la librería Selenium:
+
+      pip install selenium
+
+4. **Ejecutar el Flujo Completo de Pruebas**
+
+El flujo completo de pruebas se encuentra en el archivo main.py. Para ejecutarlo, desde la terminal (dentro del entorno virtual) escribe:
+
+      python main.py o  Ejececutar desde el Run 'main' (Boton ">")
+
+* Esto ejecutará todo el flujo automatizado que abarca:
+
+* Configuración de la ruta y selección de tarifa.
+
+* Autenticación con teléfono (ingreso de número y código SMS).
+
+* Agregar tarjeta de crédito y cierre del modal de "Método de pago".
+
+* Ingreso del mensaje para el conductor.
+
+* Selección de requisitos (activación de manta y pañuelos, agregar 2 helados y clic en "Reservar").
+
+* Confirmación final del pedido y solicitud del taxi.
