@@ -61,7 +61,7 @@ Instala la librería Selenium:
 
 El flujo completo de pruebas se encuentra en el archivo main.py. Para ejecutarlo, desde la terminal (dentro del entorno virtual) escribe:
 
-      python main.py o  Ejececutar desde el Run 'main' (Boton ">")
+      pytest
 
 * Esto ejecutará todo el flujo automatizado que abarca:
 
